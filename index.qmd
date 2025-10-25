@@ -1,0 +1,14 @@
+---
+title: Marimo
+toc: false
+format:
+  html:
+    page-layout: custom
+---
+
+
+
+
+# Welcome, 
+This is a test of Marimo within quarto to render wasm applications
+
