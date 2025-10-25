@@ -1,14 +1,18 @@
 ---
-title: Marimo
+title: Marimo-quarto
 toc: false
+about:
+  template: marquee
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com/AlexandreDabySeesaram/marimo-quarto
 format:
   html:
-    page-layout: custom
+    page-layout: full
+
 ---
 
+## Testing marimo
 
-
-
-# Welcome, 
-This is a test of Marimo within quarto to render wasm applications
-
+Here we can have marimo running within quarto
