@@ -23,6 +23,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: install uv
+        run: pip install uv
+        
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
