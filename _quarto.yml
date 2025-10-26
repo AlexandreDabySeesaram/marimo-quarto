@@ -27,9 +27,8 @@ format:
   html:
     email-obfuscation: javascript
     theme:
-      light: [flatly,style_site.scss]
-      dark: [darkly,style_site_dark.scss]
-    css: styles.css
+      light: [flatly]
+      dark: [darkly]
     toc: true
 
 
