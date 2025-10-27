@@ -2,6 +2,7 @@
 title: Marimo-quarto
 filters:
     - marimo-team/marimo
+    # marimo-version: 0.14.17
 ---
 
 From the readme of the [marimo](https://marimo.io/) exetension on [github](https://github.com/marimo-team/quarto-marimo?tab=readme-ov-file): 

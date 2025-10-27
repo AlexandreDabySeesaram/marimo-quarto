@@ -25,6 +25,8 @@ jobs:
 
       - name: install uv
         run: pip install uv
+      - name: install marimo
+        run: pip install marimo==0.14.11
         
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
