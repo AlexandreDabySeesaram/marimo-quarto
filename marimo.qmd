@@ -7,16 +7,15 @@ filters:
 
 
 
-## Example of marimo in quarto to compute the salary of french civil servants
+## Example of marimo in quarto 
 
+Here you can run python directly within your browser thanks to WASM to compute the salary of french civil servant depending on the "indice majoré" (IM). A big thank you to the awesome pluggin [quarto-marimo](https://github.com/marimo-team/quarto-marimo).
 
 ```python {.marimo}
 
 import marimo as mo
 
 ```
-
-
 
 
 
@@ -47,22 +46,24 @@ def taxes(annual_taxable_net, threshold_1 = 11497.0, threshold_2 = 29315.0):
     return second_pal_tax+thirty_tax
 
 
-
-
-
-
 ```
+
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
 
 ```python {.marimo}
 
-slider_res = mo.ui.slider(0, 10, 1, label="Indémnité résidence (%)", show_value=True, include_input=True, value = 3)
+slider_res = mo.ui.slider(0, 10, 1, label="IR (%)", show_value=True, include_input=True, value = 3)
 slider_res
 
 ```
 
 ```python {.marimo}
 
-slider_pi = mo.ui.slider(0, 50, 1, label="Augmentation point indice (%)", show_value=True, include_input=True, value = 0)
+slider_pi = mo.ui.slider(0, 50, 1, label="Reval. pt (%)", show_value=True, include_input=True, value = 0)
 slider_pi
 
 ```
@@ -80,6 +81,33 @@ RIPEC_ENS = np.array([465] + [530] * 6)  # ENS avec 3+1 ans pour these 2 ans pou
 
 
 ```
+
+
+
+```python {.marimo}
+
+slider_anc = mo.ui.slider(0, 45, 3, label="Ancienneté ", show_value=True, include_input=True, value = 21)
+slider_anc
+
+```
+
+
+
+```python {.marimo}
+
+
+slider_augmentation = mo.ui.slider(0, 45, 5, label="Palier (pt)", show_value=True, include_input=True, value = 30)
+slider_augmentation
+
+
+```
+
+
+
+
+
+
+
 
 ```python {.marimo}
 
@@ -99,10 +127,28 @@ slider_start_2
 
 ```
 
+```python {.marimo}
+
+
+prime_slider = mo.ui.slider(0, 7000, 1, label="Prime 1", show_value=True, include_input=True, value = 2000)
+prime_slider
+
+```
 
 ```python {.marimo}
 
 
+prime_slider_2 = mo.ui.slider(0, 7000, 1, label="Prime 2", show_value=True, include_input=True, value = 2000)
+prime_slider_2
+
+```
+
+
+```python {.marimo}
+
+
+number_years = int(np.floor(slider_anc.value/3))+1
+jump_indice = slider_augmentation.value
 start_indice_default = slider_start.value
 start_indice_CPJ = slider_start_2.value
 
@@ -119,17 +165,41 @@ valeur_point = valeur_point_default*(1+slider_pi.value/100)
 
 
 
+indice_majore_ENSTA_default = np.array([start_indice_default + i * jump_indice for i in range(number_years)])
+indice_majore_ENSTA_CPJ = np.array([start_indice_CPJ + i * jump_indice for i in range(number_years)])
+years_ENSTA = np.array([0] + [3] * (number_years - 1))
+Prime = prime_slider.value / 12
+Prime_2 = prime_slider_2.value / 12
+Prime_mieux = 3000 / 12
+Salaire_ENSTA_default = indice_majore_ENSTA_default * valeur_point * res
+Salaire_ENSTA_CPJ = indice_majore_ENSTA_CPJ * valeur_point * res
+Salaire_mcf_ENS = indice_majore_mcf_ENS * valeur_point
+# indice_majore_ENSTA_default = np.array(number_years*[start_indice_default])
+# indice_majore_ENSTA_CPJ = np.array(number_years*[start_indice_CPJ])
+Salaire_mcf = indice_majore_mcf * valeur_point
+indémnite_residence_mcf_ENS = 0.03 * Salaire_mcf_ENS
+indémnite_residence_mcf = 0.03 * Salaire_mcf
+Salaire_ENSTA_default_prime = Salaire_ENSTA_default + Prime
+Salaire_ENSTA_CPJ_prime = Salaire_ENSTA_CPJ + Prime_2
+
+
+
+
 Salaire_ENSTA_moy_default = start_indice_default*valeur_point*res
 Salaire_ENSTA_moy_CPJ = (start_indice_CPJ*valeur_point)*res
 
-gross_salary = Salaire_ENSTA_moy_CPJ+2000/12
+gross_salary = Salaire_ENSTA_moy_CPJ+Prime_2
 total_annual_net = gross2annual_net(gross_salary) - taxes(annual_taxable_net(gross_salary))
 
 
-gross_salary_default = Salaire_ENSTA_moy_default+2000/12
+gross_salary_default = Salaire_ENSTA_moy_default+Prime
 total_annual_net_default = gross2annual_net(gross_salary_default) - taxes(annual_taxable_net(gross_salary_default))
 
 ```
+
+:::
+
+::: {.column width="50%"}
 
 ```python {.marimo}
 
@@ -138,7 +208,7 @@ import pandas as pd
 data = {
     "Salaire": [
         "Brut mensuel",
-        "Net mensuelt",
+        "Net mensuel",
         "Net mensuel après taxes",
         "Brut annuel",
         "Brut équivalent privé",
@@ -176,3 +246,44 @@ mo.ui.table(df)
 
 ```
 
+:::
+
+::::
+
+
+
+
+
+
+
+```python {.marimo}
+
+
+import plotly.graph_objects as go
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=np.cumsum(years_ENSTA), y=Salaire_ENSTA_default, visible='legendonly', mode='lines+markers', name=f' IM {start_indice_default} (salaire seul)', line=dict(color='skyblue', dash='dash', shape='hv'), marker=dict(symbol='cross')))
+fig.add_trace(go.Scatter(x=np.cumsum(years_ENSTA), y=Salaire_ENSTA_default_prime, mode='lines+markers', name=f' IM {start_indice_default} (avec C1) ', line=dict(color='skyblue', shape='hv'), marker=dict(symbol='circle')))
+fig.add_trace(go.Scatter(x=np.cumsum(years_ENSTA), y=Salaire_ENSTA_default_prime - Prime + Prime_mieux, visible='legendonly', mode='lines+markers', name=f' IM {start_indice_default} (avec C1 + C3) ', line=dict(color='skyblue', dash='dash', shape='hv'), marker=dict(symbol='circle')))
+fig.add_trace(go.Scatter(x=np.cumsum(years_ENSTA), y=Salaire_ENSTA_CPJ, visible='legendonly', mode='lines+markers', name=f'IM {start_indice_CPJ} (salaire seul) ', line=dict(color='blue', dash='dash', shape='hv'), marker=dict(symbol='cross')))
+fig.add_trace(go.Scatter(x=np.cumsum(years_ENSTA), y=Salaire_ENSTA_CPJ_prime, mode='lines+markers', name=f'IM {start_indice_CPJ} (avec C1) ', line=dict(color='blue', shape='hv'), marker=dict(symbol='circle')))
+fig.add_trace(go.Scatter(x=np.cumsum(years_ENSTA), y=Salaire_ENSTA_CPJ_prime - Prime + Prime_mieux, visible='legendonly', mode='lines+markers', name=f'IM {start_indice_CPJ} (avec C1 + C3) ', line=dict(color='blue', dash='dash', shape='hv'), marker=dict(symbol='circle')))
+# Polytechnique
+fig.add_trace(go.Scatter(x=np.cumsum(years_mcf_ENS), y=Salaire_mcf_ENS, visible='legendonly', mode='lines+markers', name='MCF ENS (salaire seul) ', line=dict(color='lightcoral', dash='dash', shape='hv'), marker=dict(symbol='cross')))
+# fig.add_trace(go.Scatter(x=np.cumsum(years_mcf_ENS), y=Salaire_mcf_ENS + RIPEC_ENS, mode='lines+markers', name='MCF ENS (avec RIPEC) ', line=dict(color='lightcoral', shape='hv'), marker=dict(symbol='circle')))
+fig.add_trace(go.Scatter(x=np.cumsum(years_mcf_ENS), y=res * Salaire_mcf_ENS + RIPEC_ENS, mode='lines+markers', name='MCF ENS (avec RIPEC et res.) ', line=dict(color='lightcoral', dash='dash', shape='hv'), marker=dict(symbol='circle')))
+fig.add_trace(go.Scatter(x=np.cumsum(years_mcf_default), y=Salaire_mcf, visible='legendonly', mode='lines+markers', name='MCF (salaire seul) ', line=dict(color='chocolate', dash='dash', shape='hv'), marker=dict(symbol='cross')))
+# fig.add_trace(go.Scatter(x=np.cumsum(years_mcf_default), y=Salaire_mcf + RIPEC, mode='lines+markers', name='MCF (avec RIPEC) ', line=dict(color='chocolate', shape='hv'), marker=dict(symbol='circle')))
+fig.add_trace(go.Scatter(x=np.cumsum(years_mcf_default), y=res * Salaire_mcf + RIPEC, visible='legendonly', mode='lines+markers', name='MCF (avec RIPEC et res.) ', line=dict(color='chocolate', dash='dash', shape='hv'), marker=dict(symbol='circle')))
+
+############## Plotly
+fig.update_layout(title='Évolution de la rémunération', xaxis_title='Ancienneté (années)', yaxis_title='Rémunération mensuelle (€)', template='plotly_white', legend=dict(title='Catégorie'), font=dict(size=12), width=1000, height=600)
+fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgrey')
+
+```
+
+```python {.marimo}
+
+mo.ui.plotly(fig)
+
+```
